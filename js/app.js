@@ -73,26 +73,51 @@
     award: '<circle cx="12" cy="9" r="5.5"/><path d="M8.5 13.5L7 21l5-2.5 5 2.5-1.5-7.5"/>',
     lock: '<rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V8a4 4 0 018 0v2.5"/>',
     print: '<path d="M7 9V3.5h10V9"/><rect x="3.5" y="9" width="17" height="8" rx="2"/><path d="M7 14h10v6.5H7z"/>',
-    book: '<path d="M4 5.5A2 2 0 016 3.5h13v15H6a2 2 0 00-2 2z"/><path d="M4 20.5V5.5"/><path d="M8 8h7"/>'
+    book: '<path d="M4 5.5A2 2 0 016 3.5h13v15H6a2 2 0 00-2 2z"/><path d="M4 20.5V5.5"/><path d="M8 8h7"/>',
+    download: '<path d="M12 4v11M7.5 10.5L12 15l4.5-4.5M5 19.5h14"/>',
+    cloud: '<path d="M7 18.5h10a4 4 0 00.6-7.95A5.5 5.5 0 007 9.5a4.5 4.5 0 000 9z"/>',
+    logout: '<path d="M14 4.5h4.5a1.5 1.5 0 011.5 1.5v12a1.5 1.5 0 01-1.5 1.5H14M10 16l4-4-4-4M14 12H4"/>',
+    refresh: '<path d="M19.5 12a7.5 7.5 0 11-2.2-5.3M19.5 4.5v4h-4"/>',
+    user: '<circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20a7.5 7.5 0 0115 0"/>'
   };
   function icon(name, cls) {
     return '<svg class="ic ' + (cls || '') + '" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + (ICON[name] || '') + '</svg>';
   }
   A.icon = icon;
 
-  /* ---------------- progress store ---------------- */
-  function blank() { return { lessons: {}, quizzes: {}, scen: {}, lab: {}, name: '', last: null }; }
-  var P;
-  try { P = Object.assign(blank(), JSON.parse(localStorage.getItem(CFG.storageKey) || '{}')); }
-  catch (e) { P = blank(); }
-  function save() { try { localStorage.setItem(CFG.storageKey, JSON.stringify(P)); } catch (e) { /* storage unavailable */ } }
+  /* ---------------- progress store: one per signed-in user ---------------- */
+  function blank() { return { lessons: {}, quizzes: {}, scen: {}, lab: {}, name: '', last: null, gen: 0, labGen: 0, updated: 0 }; }
+  var USER = A.auth.current();
+  var P = blank();
+  function keyFor(uid) { return CFG.storageKey + ':' + uid; }
+  function loadUser(uid) {
+    try { P = Object.assign(blank(), JSON.parse(localStorage.getItem(keyFor(uid)) || '{}')); }
+    catch (e) { P = blank(); }
+  }
+  function writeLocal() { if (!USER) return; try { localStorage.setItem(keyFor(USER.id), JSON.stringify(P)); } catch (e) { /* storage unavailable */ } }
+  function setP(d) { P = Object.assign(blank(), d); writeLocal(); }
+  /* accessors that stop working if a different user signs in mid-sync */
+  function accessors(uid) {
+    return {
+      get: function () { return USER && USER.id === uid ? P : null; },
+      set: function (d) { if (USER && USER.id === uid) setP(d); }
+    };
+  }
+  function save() {
+    if (!USER) return;
+    P.updated = Date.now();
+    writeLocal();
+    var acc = accessors(USER.id);
+    A.sync.schedule(USER.id, acc.get, acc.set);
+  }
+  if (USER) loadUser(USER.id);
 
   A.progress = {
     data: function () { return P; },
     save: save,
     labDone: function (id) { return !!P.lab[id]; },
     markLab: function (id) { if (!P.lab[id]) { P.lab[id] = Date.now(); save(); return true; } return false; },
-    resetLab: function () { P.lab = {}; save(); }
+    resetLab: function () { P.lab = {}; P.labGen = (P.labGen || 0) + 1; save(); }
   };
 
   /* ---------------- course helpers ---------------- */
@@ -158,6 +183,10 @@
     s = s.replace(/\[\[(.+?)\]\]/g, function (m, k) {
       return '<span class="keys">' + k.split('+').map(function (x) { return '<kbd>' + x.trim() + '</kbd>'; }).join('<span class="plus">+</span>') + '</span>';
     });
+    s = s.replace(/\[([^\[\]]+)\]\(((?:#\/|downloads\/|https:\/\/)[^)\s]+)\)/g, function (m, t, href) {
+      var dl = /^downloads\//.test(href), ext = /^https:/.test(href);
+      return '<a href="' + href + '"' + (dl ? ' download' : '') + (ext ? ' target="_blank" rel="noopener"' : '') + '>' + t + '</a>';
+    });
     s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
     s = s.replace(/(^|[\s(“])\*([^*\s][^*]*?)\*(?=[\s.,;:!?)”]|$)/g, '$1<em>$2</em>');
     return s;
@@ -191,6 +220,11 @@
     if (name === 'scenario' && (m = args.match(/^(\w+)\s+(.*)$/))) {
       return '<a class="practice-link" href="#/practice/' + m[1] + '">' + icon(m[1] === 'travel' ? 'plane' : 'chat') +
         '<span><small>' + (m[1] === 'travel' ? 'Travel desk missions' : 'Scenario practice') + '</small>' + inline(m[2]) + '</span>' + icon('arrowR', 'go') + '</a>';
+    }
+    if (name === 'download' && (m = args.match(/^(\S+)\s+(.*)$/))) {
+      var parts = m[2].split('|');
+      return '<a class="practice-link dl-link" href="' + esc(m[1]) + '" download>' + icon('download') +
+        '<span><small>Download</small>' + inline(parts[0].trim()) + (parts[1] ? '<em>' + inline(parts[1].trim()) + '</em>' : '') + '</span>' + icon('arrowR', 'go') + '</a>';
     }
     return '';
   }
@@ -324,7 +358,7 @@
     var html = '';
     html += '<section class="hero"><div class="wrap hero-grid">';
     html += '<div class="hero-copy">';
-    html += '<p class="kicker">' + esc(CFG.programTitle) + (CFG.organisation ? ', ' + esc(CFG.organisation) : '') + '</p>';
+    html += '<p class="kicker">' + (o.done ? 'Welcome back, ' : 'Welcome, ') + esc(USER.name) + '. ' + esc(CFG.programTitle) + (CFG.organisation ? ', ' + esc(CFG.organisation) : '') + '</p>';
     html += '<h1>Run a director’s office with calm, speed and judgment.</h1>';
     html += '<p class="lead">Three courses written around the real work of an Executive Assistant: the role itself, Microsoft Outlook, and business travel. Read each lesson, test yourself, practise in realistic simulations, and finish as a professional EA.</p>';
     html += '<div class="cta-row">';
@@ -711,7 +745,7 @@
   /* ---- search ---- */
   var INDEX = null;
   function plain(s) {
-    return s.replace(/:::\w+[^\n]*\n|:::/g, ' ').replace(/^@\w+.*$/gm, ' ').replace(/\[\[|\]\]/g, '').replace(/\*\*/g, '')
+    return s.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/:::\w+[^\n]*\n|:::/g, ' ').replace(/^@\w+.*$/gm, ' ').replace(/\[\[|\]\]/g, '').replace(/\*\*/g, '')
       .replace(/^#{2,4}\s/gm, '').replace(/\|/g, ' ').replace(/^\s*-\s(\[.\]\s)?/gm, '').replace(/-{3,}/g, ' ').replace(/\s+/g, ' ');
   }
   function buildIndex() {
@@ -775,7 +809,7 @@
     });
     html += '</div>';
     if (complete) {
-      html += '<div class="cert-form"><label for="certName">Name as it should appear on the certificate</label><div class="cf-row"><input id="certName" type="text" autocomplete="name" value="' + esc(P.name) + '" placeholder="Your full name"><button class="btn primary" type="button" data-print>' + icon('print') + 'Print or save as PDF</button></div></div>';
+      html += '<div class="cert-form"><label for="certName">Name as it should appear on the certificate</label><div class="cf-row"><input id="certName" type="text" autocomplete="name" value="' + esc(certName()) + '" placeholder="Your full name"><button class="btn primary" type="button" data-print>' + icon('print') + 'Print or save as PDF</button></div></div>';
     } else {
       html += '<p class="cert-locked">' + icon('lock') + 'Preview. The certificate unlocks when all three courses are complete.</p>';
     }
@@ -787,13 +821,12 @@
     html += '<div class="certificate' + (complete ? '' : ' locked') + '" aria-label="Certificate">' +
       '<div class="cert-inner"><p class="cert-brand">' + esc(CFG.brand) + (CFG.organisation ? ' &middot; ' + esc(CFG.organisation) : '') + '</p>' +
       '<p class="cert-kind">Certificate of completion</p><p class="cert-small">This certifies that</p>' +
-      '<p class="cert-name">' + esc(complete ? (P.name || 'Your name') : 'Your name') + '</p>' +
+      '<p class="cert-name">' + esc(complete ? (certName() || 'Your name') : 'Your name') + '</p>' +
       '<p class="cert-small">has successfully completed the</p><p class="cert-prog">' + esc(CFG.programTitle) + '</p>' +
       '<ul class="cert-courses">' + A.courses.map(function (c) { return '<li>' + esc(c.title) + '</li>'; }).join('') + '</ul>' +
       '<div class="cert-foot"><div><span class="line"></span><span>' + esc(dateStr) + '</span><small>Date</small></div>' +
       '<div class="seal" aria-hidden="true">' + icon('award') + '</div>' +
       '<div><span class="line"></span><span>' + esc(CFG.brand) + '</span><small>Issued by</small></div></div></div></div>';
-    html += '<p class="reset-line"><button type="button" class="linkish" data-reset>Reset all progress</button></p>';
     html += '</section>';
     view.innerHTML = html;
 
@@ -804,13 +837,189 @@
     });
     var pr = $('[data-print]', view);
     if (pr) pr.addEventListener('click', function () {
-      if (!P.name) { toast('Enter your name first'); nameIn.focus(); return; }
+      if (!certName()) { toast('Enter your name first'); nameIn.focus(); return; }
       window.print();
     });
+  }
+  function certName() { return P.name || (USER ? USER.name : ''); }
+
+  /* ---- sign-in ---- */
+  function loginPage() {
+    setTitle('Sign in');
+    document.body.classList.add('signed-out');
+    var users = A.auth.users();
+    var colors = ['var(--ea)', 'var(--ol)', 'var(--tr)'];
+    view.innerHTML = '<section class="login"><div class="login-card">' +
+      '<span class="brand-mark big" aria-hidden="true"><i></i><i></i><i></i></span>' +
+      '<h1>Sign in to ' + esc(CFG.brand) + '</h1>' +
+      '<p class="login-sub">Choose your name and enter your password. Your lessons, quiz scores and practice results are saved to your own account' + (A.auth.cloudReady() ? ' and follow you to any device.' : '.') + '</p>' +
+      '<form class="login-form" novalidate><fieldset class="who"><legend>Who is learning?</legend><div class="who-grid">' +
+      users.map(function (u, i) {
+        return '<label class="who-opt" style="--c:' + colors[i % 3] + '"><input type="radio" name="who" value="' + esc(u.id) + '"' + (users.length === 1 ? ' checked' : '') + '>' +
+          '<span class="who-av">' + esc(u.name.charAt(0)) + '</span><span class="who-name">' + esc(u.name) + '</span></label>';
+      }).join('') + '</div></fieldset>' +
+      '<label class="pw-label" for="pw">Password</label><div class="pw-row"><input id="pw" type="password" autocomplete="current-password"><button type="button" class="pw-toggle" aria-pressed="false">Show</button></div>' +
+      '<p class="login-err" role="alert" hidden></p>' +
+      '<button class="btn primary wide" type="submit">Sign in</button></form></div></section>';
+    var form = $('.login-form', view), err = $('.login-err', view), pw = $('#pw', view), btn = $('button[type=submit]', form);
+    function fail(msg) { err.textContent = msg; err.hidden = false; form.classList.remove('shake'); void form.offsetWidth; form.classList.add('shake'); }
+    $all('input[name="who"]', view).forEach(function (r) { r.addEventListener('change', function () { err.hidden = true; pw.focus(); }); });
+    $('.pw-toggle', view).addEventListener('click', function (e) {
+      var show = pw.type === 'password';
+      pw.type = show ? 'text' : 'password';
+      e.currentTarget.textContent = show ? 'Hide' : 'Show';
+      e.currentTarget.setAttribute('aria-pressed', String(show));
+    });
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var who = form.querySelector('input[name="who"]:checked');
+      if (!who) return fail('Choose your name first.');
+      if (!pw.value) { pw.focus(); return fail('Enter your password.'); }
+      btn.disabled = true; btn.textContent = 'Signing in';
+      A.auth.signIn(who.value, pw.value).then(function (ok) {
+        btn.disabled = false; btn.textContent = 'Sign in';
+        if (!ok) { pw.value = ''; pw.focus(); return fail('That password isn’t right. Try again.'); }
+        startSession();
+        route();
+        toast('Welcome, ' + USER.name);
+      }, function (e) {
+        btn.disabled = false; btn.textContent = 'Sign in';
+        fail(e.message);
+      });
+    });
+  }
+
+  function startSession() {
+    USER = A.auth.current();
+    loadUser(USER.id);
+    A.sync.reset();
+    document.body.classList.remove('signed-out');
+    renderChip();
+    runSync();
+  }
+
+  function signOut() {
+    if (USER) A.sync.flush(USER.id, accessors(USER.id).get);
+    A.auth.signOut();
+    USER = null; P = blank();
+    A.sync.reset();
+    renderChip();
+    if (location.hash && location.hash !== '#/') location.hash = '#/'; else route();
+    toast('Signed out');
+  }
+
+  /* ---- cloud save ---- */
+  var SAFE_REFRESH = /^(#\/?)?$|^#\/(course|practice|certificate|account)/;
+  function runSync() {
+    if (!USER || !A.sync.enabled()) return Promise.resolve(false);
+    var uid = USER.id, acc = accessors(uid);
+    return A.sync.syncNow(uid, acc.get, acc.set).then(function (changed) {
+      if (changed && USER && USER.id === uid && SAFE_REFRESH.test(location.hash || '')) route(true);
+      return changed;
+    });
+  }
+
+  function syncLabel(s) {
+    return ({ off: 'Saved on this device only', idle: 'Cloud save is on', pending: 'Saving to GitHub', syncing: 'Saving to GitHub', ok: 'Saved to GitHub', error: 'Cloud save problem' })[s.status] || '';
+  }
+
+  function renderChip() {
+    var chip = document.getElementById('acctChip');
+    if (!chip) return;
+    if (!USER) { chip.hidden = true; chip.innerHTML = ''; return; }
+    var s = A.sync.state();
+    chip.hidden = false;
+    chip.innerHTML = '<span class="acct-av">' + esc(USER.name.charAt(0)) + '<i class="sync-dot s-' + s.status + '"></i></span><span class="acct-name">' + esc(USER.name) + '</span>';
+    chip.title = USER.name + ': ' + syncLabel(s) + (s.status === 'error' ? '. ' + s.error : '');
+    chip.setAttribute('aria-label', 'Account, ' + USER.name + '. ' + syncLabel(s));
+  }
+
+  function fmtTime(d) { return d ? d.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' }) : ''; }
+
+  function syncPanelInner() {
+    var s = A.sync.state(), h = '';
+    if (A.sync.enabled()) {
+      var line = s.status === 'ok' ? 'Saved to GitHub at ' + esc(fmtTime(s.at)) + '.'
+        : s.status === 'error' ? esc(s.error)
+        : (s.status === 'syncing' || s.status === 'pending') ? 'Saving to GitHub.'
+        : 'Cloud save is on.';
+      h += '<p class="sync-line s-' + s.status + '"><i class="sync-dot s-' + s.status + '"></i><span>' + line + '</span></p>';
+      h += '<p class="muted-text">Your progress saves to GitHub automatically a few seconds after every change, and loads on any computer or phone you sign in on. There is nothing to set up.</p>';
+      h += '<div class="cta-row"><button class="btn ghost" type="button" data-sync-now>' + icon('refresh') + 'Sync now</button></div>';
+    } else {
+      h += '<p class="sync-line s-off"><i class="sync-dot s-off"></i><span>Progress is saved in this browser only.</span></p>';
+      h += '<p class="muted-text">Cloud save has not been switched on for this site yet. The site owner runs the one-time setup in the README, and after that everyone’s progress saves to GitHub automatically.</p>';
+    }
+    return h;
+  }
+
+  function refreshSyncPanel() {
+    var p = document.getElementById('syncPanel');
+    if (p) { p.innerHTML = syncPanelInner(); }
+  }
+
+  /* ---- account page ---- */
+  function accountPage() {
+    setTitle('Account');
+    var lt = 0, ld = 0, qt = 0, qd = 0;
+    A.courses.forEach(function (c) {
+      c.modules.forEach(function (m, mi) {
+        m.lessons.forEach(function (l, li) { lt++; if (P.lessons[lk(c.id, mi, li)]) ld++; });
+        if (m.quiz && m.quiz.length) { qt++; if (quizPassed(c.id, mi)) qd++; }
+      });
+    });
+    var st = A.scenarios.ea.length + A.scenarios.travel.length, sd = Object.keys(P.scen).length;
+    var labN = Object.keys(P.lab).length, labT = window.OutlookLab ? window.OutlookLab.missions.length : 11;
+    var o = overall();
+    var html = '<section class="wrap page-head"><h1>Your account</h1><p class="lead">Signed in as <strong>' + esc(USER.name) + '</strong>. You have completed ' + o.pct + '% of the program.</p></section>';
+    html += '<section class="wrap section acct-page"><div class="acct-grid">';
+    html += '<div class="panel"><h2>' + icon('user') + 'Progress</h2><dl class="stats">' +
+      '<div><dt>Lessons read</dt><dd>' + ld + ' of ' + lt + '</dd></div>' +
+      '<div><dt>Module quizzes passed</dt><dd>' + qd + ' of ' + qt + '</dd></div>' +
+      '<div><dt>Scenarios attempted</dt><dd>' + sd + ' of ' + st + '</dd></div>' +
+      '<div><dt>Outlook lab missions</dt><dd>' + labN + ' of ' + labT + '</dd></div></dl>' +
+      bar(o.pct) + '<div class="cta-row"><button class="btn ghost" type="button" data-signout>' + icon('logout') + 'Sign out</button></div></div>';
+    html += '<div class="panel"><h2>' + icon('cloud') + 'Cloud save</h2><div id="syncPanel">' + syncPanelInner() + '</div></div>';
+    html += '<div class="panel"><h2>' + icon('download') + 'Backup</h2><p class="muted-text">Download a copy of your progress, or restore one. Restoring adds to what you already have; nothing is lost.</p>' +
+      '<div class="cta-row"><button class="btn ghost" type="button" data-backup>Download my progress</button><label class="btn ghost file-btn">Restore from a file<input type="file" accept=".json,application/json" data-restore hidden></label></div></div>';
+    html += '<div class="panel danger"><h2>Start over</h2><p class="muted-text">Clear every lesson, quiz score, scenario and lab mission for ' + esc(USER.name) + ' on all devices. This cannot be undone.</p>' +
+      '<div class="cta-row"><button class="btn ghost danger-btn" type="button" data-reset>Reset all my progress</button></div></div>';
+    html += '</div></section>';
+    view.innerHTML = html;
+
+    $('[data-signout]', view).addEventListener('click', signOut);
+    $('[data-backup]', view).addEventListener('click', function () {
+      var blob = new Blob([JSON.stringify(P, null, 1)], { type: 'application/json' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'ea-academy-' + USER.id + '-' + new Date().toISOString().slice(0, 10) + '.json';
+      document.body.appendChild(a); a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+    });
+    $('[data-restore]', view).addEventListener('change', function (e) {
+      var f = e.target.files && e.target.files[0];
+      if (!f) return;
+      var rd = new FileReader();
+      rd.onload = function () {
+        try {
+          var d = JSON.parse(rd.result);
+          if (!d || typeof d !== 'object' || !d.lessons) throw new Error('bad');
+          d.gen = P.gen; d.labGen = P.labGen;
+          P = Object.assign(blank(), A.mergeProgress(P, d));
+          save(); toast('Progress restored'); accountPage();
+        } catch (err) { toast('That file is not an EA Academy progress file', 'bad'); }
+      };
+      rd.readAsText(f);
+    });
     $('[data-reset]', view).addEventListener('click', function () {
-      if (window.confirm('Reset all lessons, quizzes, scenarios and lab missions? This cannot be undone.')) {
-        P = blank(); save(); toast('Progress reset'); certificatePage();
+      if (window.confirm('Reset all lessons, quizzes, scenarios and lab missions for ' + USER.name + '? This cannot be undone.')) {
+        var g = (P.gen || 0) + 1;
+        P = blank(); P.gen = g;
+        save(); toast('Progress reset'); accountPage();
       }
+    });
+    document.getElementById('syncPanel').addEventListener('click', function (e) {
+      if (e.target.closest('[data-sync-now]')) runSync();
     });
   }
 
@@ -831,20 +1040,24 @@
     [/^#\/lab\/outlook(?:\/(\d+))?$/, function (m) { labPage(m[1] ? +m[1] : null); }],
     [/^#\/glossary$/, function () { glossaryPage(); }],
     [/^#\/certificate$/, function () { certificatePage(); }],
-    [/^#\/search\/(.*)$/, function (m) { searchPage(decodeURIComponent(m[1])); }]
+    [/^#\/search\/(.*)$/, function (m) { searchPage(decodeURIComponent(m[1])); }],
+    [/^#\/account$/, function () { accountPage(); }]
   ];
 
-  function route() {
+  function route(keepScroll) {
     if (window.OutlookLab) window.OutlookLab.unmount();
-    var hash = location.hash || '#/';
     closeNav();
+    if (!USER) { loginPage(); window.scrollTo(0, 0); return; }
+    document.body.classList.remove('signed-out');
+    var hash = location.hash || '#/';
+    var y = window.scrollY;
     for (var i = 0; i < routes.length; i++) {
       var m = hash.match(routes[i][0]);
       if (m) {
         routes[i][1](m);
         setActiveNav(hash);
-        window.scrollTo(0, 0);
-        view.focus({ preventScroll: true });
+        window.scrollTo(0, keepScroll === true ? y : 0);
+        if (keepScroll !== true) view.focus({ preventScroll: true });
         return;
       }
     }
@@ -861,7 +1074,7 @@
     }
   });
 
-  window.addEventListener('hashchange', route);
+  window.addEventListener('hashchange', function () { route(false); });
   document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('brandName').textContent = CFG.brand;
     applyTheme(savedTheme);
@@ -883,6 +1096,14 @@
       });
     });
     document.getElementById('yr').textContent = new Date().getFullYear();
+    A.sync.on(function () { renderChip(); refreshSyncPanel(); });
+    renderChip();
     route();
+    if (USER) runSync();
+    document.addEventListener('visibilitychange', function () {
+      if (!USER) return;
+      if (document.visibilityState === 'hidden') A.sync.flush(USER.id, accessors(USER.id).get);
+      else if (A.sync.enabled() && A.sync.sinceLastPull() > 60000) runSync();
+    });
   });
 })();

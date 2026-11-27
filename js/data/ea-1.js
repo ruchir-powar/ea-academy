@@ -610,6 +610,8 @@ Build a recurring “office calendar” with reminders for:
 :::tip Set reminders well before the deadline
 A passport renewal needs a reminder 9 months before expiry, not 9 days. A visa needs 6–8 weeks. Gifting needs 4–6 weeks. Put the reminder at the point where action must begin, not on the deadline itself.
 :::
+
+The step-by-step method, with a ready-made Excel tracker, is in [Renewals: never miss an expiry](#/learn/ea/6/3). The monthly card routine is in [The corporate card and expense claims, step by step](#/learn/ea/6/4).
 `
 }
   ],

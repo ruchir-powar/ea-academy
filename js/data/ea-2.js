@@ -204,7 +204,7 @@ If you told someone “I’ll get back to you tomorrow”, put it in your tracke
 /* ---------------------------------------------------------------- */
 {
   title: 'Documents, money matters and events',
-  summary: 'Filing that anyone can follow, the finance basics every EA must know, and running client visits, events and gifting.',
+  summary: 'Filing that anyone can follow, finance basics, renewals that never lapse, the monthly card reconciliation, and running client visits, events and gifting.',
   lessons: [
 {
 title: 'Filing systems and naming conventions',
@@ -306,6 +306,8 @@ Most airlines, hotels and travel portals let you enter the company GSTIN while b
 ## Corporate credit card
 Every month, match each card transaction to a receipt and a purpose. Raise disputes for unknown charges quickly; banks have time limits. Never use the corporate card for personal expenses, even temporarily.
 
+The full monthly routine, with a practice workbook, is in [The corporate card and expense claims, step by step](#/learn/ea/6/4).
+
 ## Petty cash
 - Use the **imprest system**: a fixed float (for example ₹10,000). Each payment is recorded with a voucher and receipt. When it runs low, accounts tops it back up to the fixed amount.
 - Count the cash at the end of every week. Cash + vouchers must always equal the float.
@@ -315,6 +317,197 @@ When an invoice arrives for something the director’s office ordered, route it 
 
 ## Know the approval limits
 Most companies have a **delegation of authority** matrix: who can approve what, up to which amount. Get a copy. Before you send anything to the director for approval, check that it is within their authority, and that it has the approvals needed before it reaches them.
+`
+},
+{
+title: 'Renewals: never miss an expiry',
+minutes: 11,
+body: `
+## Why renewals need a system
+Renewals are boring until one is missed. Then:
+- An expired passport cancels an overseas trip.
+- A lapsed health policy can reset waiting periods or leave a hospital bill uncovered.
+- An expired domain name takes the company’s email and website offline.
+- An expired digital signature certificate (DSC) stops tax and company filings.
+
+Your job is to make sure none of these ever surprises the director. The method has three parts: a **register** of everything that expires, a **reminder** for each item at the moment action must start, and a **monthly check**.
+
+## Step 1: list everything that expires
+Sit with the director once and go through these categories. Write down every item, for the director and for family members if you handle their documents.
+
+| Category | Examples | Start renewing |
+|---|---|---|
+| Travel documents | Passports, visas | Passport about 9 months before expiry; visa 2–4 months before travel |
+| Insurance | Health, motor, home, annual travel | About 30 days before |
+| Vehicles | Motor insurance, PUC certificate, registration | PUC about a week before; insurance 30 days |
+| Licences and certificates | Driving licence, digital signature certificate (DSC) | 30–60 days before |
+| Digital | Domain names, Microsoft 365, Zoom, Canva, cloud storage | 30–60 days before |
+| Memberships | Clubs, industry associations | About 30 days before |
+| Company items you track but don’t own | Shop and establishment licence, maintenance contracts | 60–90 days; confirm who owns the renewal |
+
+:::tip Lead time means start, not deadline
+The lead time is how early you must **start**: appointments, documents, approvals and payment all take time. A passport renewal started 9 days before expiry is already too late.
+:::
+
+Validity periods and rules change. Always check the date printed on the document itself, and the official website, before you act.
+
+## Step 2: build the renewals register
+One Excel sheet, one row per item. Download the ready-made version, or build your own with the columns below.
+
+@download downloads/Renewals_Tracker.xlsx Renewals tracker (Excel) | Sample rows, automatic status, colour coding and a lead-times guide
+
+| Column | What goes in it |
+|---|---|
+| Item | Passport, Health insurance, Domain yourcompany.in |
+| For | Vikram Shah, Mrs. Shah, Company, car number |
+| Number / ID | Passport or policy number |
+| Expiry date | The date printed on the document |
+| Days needed to renew | Your lead time, for example 270 for a passport |
+| Remind on | Calculated: expiry minus days needed |
+| Days left | Calculated: expiry minus today |
+| Status | Calculated: EXPIRED, ACT NOW, Due soon or OK |
+| Where to renew | Portal, agent or office |
+| Notes | Anything you will need next time |
+
+:::template Formulas for row 6 (copy down the column)
+Remind on (G6):  =IF(E6="","",E6-F6)
+Days left (H6):  =IF(E6="","",E6-TODAY())
+Status (I6):     =IF(E6="","",IF(E6<TODAY(),"EXPIRED",IF(TODAY()>=G6,"ACT NOW",IF(TODAY()>=G6-30,"Due soon","OK"))))
+:::
+
+Then colour the Status column so problems jump out:
+1. Select the Status column.
+2. **Home → Conditional Formatting → Highlight Cells Rules → Text that Contains**.
+3. Type ACT NOW and choose a red fill. Repeat for EXPIRED (dark red) and Due soon (amber).
+4. Turn on **Data → Filter**, so you can show only the rows that need action.
+
+:::warn The register holds personal data
+Passport and policy numbers are sensitive. Keep the file in a password-protected location, never on the desktop or in personal email.
+:::
+
+## Step 3: put a reminder in Outlook for each item
+The register shows what is due when you open it. Outlook reminds you even when you don’t.
+1. In your calendar, create an appointment on the **Remind on** date at 9:30 am.
+2. Title it clearly: **RENEW: Passport, Vikram Shah, expires 14 Aug 2027**.
+3. Set **Show as: Free** so it doesn’t block the calendar, add a reminder, and use a **Renewals** category.
+4. In the description, write where to renew and which documents are needed.
+5. For yearly items such as insurance, set **Repeat: Yearly**.
+
+A Microsoft To Do task with its due date on the Remind on date works just as well.
+
+## Step 4: the monthly renewals check (10 minutes)
+On the first working day of every month:
+- [ ] Open the register and filter Status for ACT NOW and Due soon.
+- [ ] Start every ACT NOW renewal today.
+- [ ] Tell the director about anything that needs their documents, signature or presence, such as passport appointments or biometrics.
+- [ ] Check auto-renewing subscriptions: is the saved card still valid?
+- [ ] Add anything new: a new car, a new policy, a new subscription.
+
+## How a renewal actually gets done
+Example: the director’s family health insurance expires on 10 December.
+1. **10 November:** the reminder fires. Find the insurer’s renewal notice (email or post).
+2. Check the premium, the sum insured and the members covered. Note anything that changed.
+3. Ask the director: renew as it is, or change the cover? If the company uses an insurance agent or broker, ask them for options.
+4. Get approval for the payment.
+5. Pay through the insurer’s portal or the agent, using the card or account agreed for this item.
+6. Download the new policy and file it: **2026-12-10_Health-Insurance_Policy_2026-27.pdf**.
+7. Update the register with the new expiry: 10 December 2027.
+8. Move the Outlook reminder to next year.
+9. Tell the director it is done, in one line.
+
+:::example Closing the loop
+“Sir, the family health policy is renewed till 10 December 2027, same cover. Premium ₹38,420 paid by card. The policy PDF is in your Insurance folder.”
+:::
+
+## Common traps
+- **Auto-renew that fails silently** because the saved card has expired. Track card expiry dates in the register too.
+- **Renewal emails going to an old address**, such as a former employee’s. Update the contact email on every account.
+- **Family members’ documents forgotten** because only the director’s were tracked.
+- **New passport, old visa.** Valid visas usually stay in the old passport, and the traveller may need to carry both. Rules differ by country, so check before travel.
+
+@scenario ea Practise the monthly renewals check in the scenario simulator
+`
+},
+{
+title: 'The corporate card and expense claims, step by step',
+minutes: 13,
+body: `
+## What reconciliation means
+Reconciling the corporate card means proving that **every line on the statement** has a receipt and a business purpose, and catching anything that should not be there. It protects the director (no questions from finance or auditors), the company (no fraud, correct GST claims) and you.
+
+## Set up once
+- A folder for each month, for example **Finance / Card / 2026-11**.
+- Ask the director to send you a photo of every receipt the same day, by WhatsApp or email. Paper receipts fade and get lost.
+- Use a phone scanner app to save receipts straight into the month’s folder, named by date, merchant and amount: **2026-11-14_Indian-Accent_6840.pdf**.
+- If the bank allows it, get SMS or email alerts for card transactions so you see charges as they happen.
+- Get a copy of the company’s expense policy: what is allowed, limits, deadlines and who approves.
+
+## The monthly routine, step by step
+1. **Download the statement** from the card portal or net banking as soon as it is generated. Note the statement period and the payment due date.
+2. **List every transaction** in your reconciliation sheet: date, merchant, amount.
+3. **Match each line to a receipt:** same merchant, same amount, date within a day or two.
+4. **Give every line a status:**
+  - **Matched**: receipt found, business expense.
+  - **Missing receipt**: a real business charge, receipt not yet found.
+  - **Dispute**: duplicate, unknown, or wrong amount.
+  - **Personal**: the director’s personal purchase on the company card.
+5. **Add the business purpose and cost centre** to each line: “Lunch with Rajesh Mehta, Horizon Retail. Sales.”
+6. **Fix the exceptions** (see the table below).
+7. **Submit to finance** with the sheet and one PDF of all receipts, approved by the director if your policy requires it.
+8. **Check that it balances.** The total of your sheet must equal the statement total exactly. If it doesn’t, a line is missing or mistyped, or a refund was entered as a plus instead of a minus. Never add an adjustment line to force it.
+9. **Check that the card bill is paid** before the due date, and track every refund or credit until it appears.
+
+@download downloads/Card_Reconciliation_Practice.xlsx Card reconciliation practice workbook (Excel) | A real-looking November statement with 11 lines, receipts, dropdowns and automatic checking
+
+## Fixing the exceptions
+| Problem | What to do |
+|---|---|
+| Missing receipt | Ask the director first. Then ask the vendor for a duplicate invoice; most hotels, airlines and couriers can email one. As a last resort, use the company’s missing-receipt declaration, if it has one. |
+| Duplicate charge | Check with the merchant, then dispute with the bank in writing. Keep the reference number. |
+| Unknown merchant | Ask the director whether they recognise it; names on statements often differ from shop names. If not, dispute it and ask the bank whether to block and reissue the card. |
+| Amount differs from the receipt | Check for a tip or a partial refund. For foreign currency, the bank’s exchange rate, a foreign-currency markup and GST on that markup make the rupee amount higher than the receipt. That is normal. |
+| Personal purchase | Record it for recovery as per policy, for example a salary deduction or repayment by the director. Never hide it among business expenses. |
+| Hotel hold | Hotels block an amount at check-in that should drop off after check-out. If it was actually charged as well as the bill, dispute it. |
+
+:::warn Disputes have deadlines
+Banks accept disputes only for a limited time after the statement date. Raise them in the week the statement arrives, not at the end of the month.
+:::
+
+## A worked example
+| Date | Merchant | Amount (₹) | Status | Why |
+|---|---|---|---|---|
+| 12 Nov | Grand Residency New Delhi | 11,210 | Matched | Hotel invoice in hand |
+| 12 Nov | Grand Residency New Delhi | 11,210 | Dispute | Same amount, same day, one night stayed: a duplicate |
+| 15 Nov | ZOOM.US (USD 15.99) | 1,412 | Matched | Receipt in dollars; the difference is conversion plus markup |
+| 18 Nov | Croma Electronics | 3,299 | Personal | Headphones for the director’s son |
+| 21 Nov | Blue Dart Express | 1,180 | Missing receipt | A real courier charge; ask for a duplicate invoice |
+
+## Expense claims: money paid out of pocket
+The card covers most spending. When the director (or you) pays with personal money, such as cash for a taxi or a personal card at a restaurant, the money is claimed back through an **expense claim**.
+1. Collect the receipts. Every line needs one.
+2. Check that hotel and airline invoices carry the **company name and GSTIN**, so the company can claim the GST.
+3. Fill in the claim form or expense system, one line per receipt, with category, purpose and amount.
+4. Do **not** include anything paid on the corporate card. That would pay it twice.
+5. Attach the receipts, get approval as per policy, and submit before the deadline.
+6. Track the claim until the money reaches the director’s account, and keep a copy.
+
+:::template Expense claim lines
+DATE    CATEGORY           DESCRIPTION                           PAID BY        AMOUNT
+12 Dec  Local conveyance   Taxi, Delhi airport to Gurgaon        Personal cash  ₹1,150
+12 Dec  Meals              Dinner at the hotel, alone            Personal card  ₹1,620
+13 Dec  Local conveyance   Taxi, Manesar to Delhi airport        Personal cash  ₹1,400
+                                                         TOTAL CLAIM        ₹4,170
+Not claimed: flight and hotel (paid on the corporate card)
+:::
+
+## Mistakes that cause trouble
+- Leaving the reconciliation until the next statement arrives. Receipts get lost and dispute deadlines pass.
+- Claiming a card expense again as a personal claim.
+- Accepting hotel and airline invoices without the company GSTIN.
+- Vague purposes such as “meeting” or “misc”. Write who, why and which project.
+- Personal spending on the company card with no record of it.
+
+@scenario ea Practise month-end reconciliation in the scenario simulator
 `
 },
 {
@@ -386,7 +579,13 @@ Book in the director’s name with your number as contact. Confirm the table typ
     { q: "Why should hotel and airline invoices carry the company GSTIN?", o: ["It is required to check in", "So the company can claim input tax credit", "It makes the booking cheaper", "To get loyalty points"], a: 1, why: "Without the company’s GSTIN on the invoice, GST cannot be claimed back." },
     { q: "In an imprest petty cash system, what should always be true?", o: ["Cash in hand is zero at month end", "Cash + vouchers equals the fixed float", "Only the director can withdraw cash", "Receipts are optional below ₹500"], a: 1, why: "The float is always accounted for by cash and vouchers." },
     { q: "When should festive gifting planning start?", o: ["One week before", "About six weeks before", "On the day", "Three months after"], a: 1, why: "Sourcing, approvals, personalisation and delivery take time." },
-    { q: "After a client visit, when should the thank-you email go?", o: ["Within 24 hours", "After a week", "At the next visit", "Only if the deal is signed"], a: 0, why: "Prompt thanks keeps the relationship warm and confirms commitments." }
+    { q: "After a client visit, when should the thank-you email go?", o: ["Within 24 hours", "After a week", "At the next visit", "Only if the deal is signed"], a: 0, why: "Prompt thanks keeps the relationship warm and confirms commitments." },
+    { q: "The director’s passport expires on 20 August 2027. Around when should the renewal reminder go off?", o: ["July 2027", "Around November 2026", "On 20 August 2027", "Only when a trip is booked"], a: 1, why: "Start about 270 days (9 months) before expiry: most countries need 6 months’ validity, and visas may need moving to the new passport." },
+    { q: "Expiry date is in E5 and Days needed in F5. Which formula gives the Remind on date?", o: ["=E5+F5", "=E5-F5", "=TODAY()-E5", "=F5-E5"], a: 1, why: "Remind on = Expiry date minus the days needed to renew." },
+    { q: "The card statement shows the same Air India charge twice on the same day, but there was only one booking. What do you do?", o: ["Match both lines to the e-ticket", "Dispute the second charge with the bank", "Ignore it; the airline will refund it automatically", "Ask the director to pay it"], a: 1, why: "A duplicate charge is disputed with the bank, within the bank’s time limit." },
+    { q: "Your reconciliation total doesn’t equal the statement total. What does that tell you?", o: ["The bank made an error", "A line is missing, mistyped, or a refund was not entered as a minus amount", "Small differences don’t matter", "Add a bank-charge line to make it balance"], a: 1, why: "The sheet must balance exactly before it goes to finance. Never force it." },
+    { q: "A Zoom receipt says USD 15.99 but the card statement shows ₹1,412. What is the most likely reason?", o: ["Zoom overcharged", "The bank’s exchange rate, foreign-currency markup and GST on the markup", "A duplicate charge", "A typing error by the bank"], a: 1, why: "Foreign-currency charges always look higher in rupees. Match them and note the reason." },
+    { q: "The director paid a taxi in cash and the flight on the corporate card. What goes on the expense claim?", o: ["Both", "Only the taxi", "Only the flight", "Neither"], a: 1, why: "Expense claims are for out-of-pocket spending. Card items are already paid; claiming them again pays twice." }
   ]
 },
 /* ---------------------------------------------------------------- */

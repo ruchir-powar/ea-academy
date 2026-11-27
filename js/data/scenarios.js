@@ -170,6 +170,59 @@ ACADEMY.scenarios.ea = [
     ]}
   ],
   debrief: 'Family and safety come first. Interrupt discreetly, prepare logistics, protect privacy and keep the business running in the background.'
+},
+{
+  title: 'The monthly card statement',
+  tag: 'Finance',
+  brief: 'It is 2 December. The November corporate card statement has arrived: 16 lines, ₹66,531.25, payment due on 20 December. You have matched most lines to receipts. Four need a decision.',
+  steps: [
+    { q: 'PAYU*KRV SERVICES, ₹4,720. No receipt anywhere, and the name means nothing to you. What do you do?', options: [
+      { t: 'Ask the director once whether he recognises it. If not, dispute it with the bank today and tell finance.', s: 2, f: 'Right. Unknown charges are disputed quickly, because banks set time limits, and finance needs to know before paying.' },
+      { t: 'Mark it Chase receipt and look again next month.', s: 0, f: 'By next month the bank’s dispute window may be closing. Unknown charges cannot wait.' },
+      { t: 'Put it under Other and submit. It is a small amount.', s: 0, f: 'Small unknown charges are often how card fraud starts. Every line needs proof and a purpose.' },
+      { t: 'Call the bank and block the card immediately.', s: 1, f: 'If fraud is likely, blocking can be right, but check with the director first: blocking also stops every genuine subscription on the card.' }
+    ]},
+    { q: 'AIR INDIA LTD, ₹9,200, appears twice on 21 November. You can find only one e-ticket.', options: [
+      { t: 'Check the airline account for a second booking. If there is only one, dispute the second charge with the bank as a duplicate.', s: 2, f: 'Exactly. Confirm first, then dispute. Note it in your follow-up tracker until the bank reverses it.' },
+      { t: 'Assume the director booked two tickets and match both lines to the e-ticket.', s: 0, f: 'Two charges cannot match one ticket. That hides a ₹9,200 error.' },
+      { t: 'Email Air India customer care for a refund and wait for their reply.', s: 1, f: 'It might work, but a bank dispute protects the company within the time limit. You can do both.' }
+    ]},
+    { q: 'AMAZON PAY INDIA, ₹3,499. The director tells you it was his personal headphones.', options: [
+      { t: 'Record it as personal, show it in the summary, and recover it as per company policy.', s: 2, f: 'Open and simple. Personal spends on a corporate card are common mistakes; hiding them is the real problem.' },
+      { t: 'Put it under Office supplies so the director is not embarrassed.', s: 0, f: 'Recording a personal purchase as a business expense is a serious policy breach, for you and for him.' },
+      { t: 'Leave it off the reconciliation sheet.', s: 0, f: 'Then the sheet won’t balance, and the charge is still hidden.' }
+    ]},
+    { q: 'Your sheet adds up to ₹69,731.25. The statement total is ₹66,531.25. What is the most likely cause?', options: [
+      { t: 'The ₹3,200 IndiGo refund line is missing. Credits reduce the total.', s: 2, f: 'The difference is exactly ₹3,200, the refund. Always enter credits as minus amounts.' },
+      { t: 'The bank has made an error. Ask finance to pay your total.', s: 0, f: 'An exact, round difference almost always points to a missing or mistyped line on your side.' },
+      { t: 'Add a ₹3,200 adjustment under bank charges so it balances.', s: 0, f: 'Never force a reconciliation to balance. Find the line.' },
+      { t: 'Download the statement again.', s: 1, f: 'It won’t hurt, but the size of the difference already tells you where to look.' }
+    ]}
+  ],
+  debrief: 'Every line needs proof and a business purpose. Unknown and duplicate charges are disputed quickly, personal spends are recorded openly and recovered, refunds are minus amounts, and the sheet must balance exactly before it goes to finance.'
+},
+{
+  title: 'The monthly renewals check',
+  tag: 'Renewals',
+  brief: 'First working day of December. You open the renewals register and filter for ACT NOW. Three items need you: Vikram’s passport (expires 14 August 2027; he flies to Dubai in February), the company domain yourcompany.in (the registrar emailed overnight: auto-renew failed), and the family health insurance (expires 10 December).',
+  steps: [
+    { q: 'Vikram’s passport is valid for 8 more months, and he travels to Dubai in February. What do you do?', options: [
+      { t: 'Start the renewal now: fill the online form, book a Passport Seva appointment around his calendar, and check whether any visas in the old passport need attention.', s: 2, f: 'Right. By February he would have about 6 months left, which is the minimum many countries accept. Starting now keeps the trip safe.' },
+      { t: 'Wait until after the Dubai trip. The passport is still valid.', s: 0, f: 'Risky. Many countries, including the UAE, need 6 months’ validity on arrival. He would be right at the edge.' },
+      { t: 'Remind Vikram to renew it himself when he has time.', s: 1, f: 'It is his document, but driving the renewal is your job. Left to him, it usually slips until it is urgent.' }
+    ]},
+    { q: 'The registrar’s email says the saved card was declined, and the domain expires in 9 days.', options: [
+      { t: 'Today: tell the IT head, update the payment card on the registrar account, renew manually, and confirm the new expiry date in writing.', s: 2, f: 'Exactly. An expired domain takes the company’s email and website down. Then update the register and the card expiry note.' },
+      { t: 'Leave it. The registrar will try again automatically.', s: 0, f: 'It will try the same declined card. Domains lapse exactly like this.' },
+      { t: 'Forward the email to IT and mark it done.', s: 1, f: 'Forwarding is a start, but it is only done when you see the new expiry date. Follow up until then.' }
+    ]},
+    { q: 'The health insurance expires on 10 December. Vikram is travelling all week and back on the 9th.', options: [
+      { t: 'Send him a one-line summary by WhatsApp (same cover, premium ₹38,420), get his OK, pay, file the policy and update the register.', s: 2, f: 'A decision he can make in ten seconds from anywhere, and no risk of a lapse.' },
+      { t: 'Wait until he is back on the 9th.', s: 0, f: 'One delayed flight and the policy lapses. Lapses can reset waiting periods.' },
+      { t: 'Increase the cover while renewing, since medical costs keep rising.', s: 0, f: 'Changing cover and premium is his decision. Recommend it; don’t decide it.' }
+    ]}
+  ],
+  debrief: 'Renewals are won by starting early. Act on everything marked ACT NOW the same day, get quick approvals in one line, and a renewal is only finished when you have seen the new expiry date and updated the register.'
 }
 ];
 

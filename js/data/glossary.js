@@ -51,5 +51,10 @@ ACADEMY.glossary = [
   ['Tier 1 / 2 / 3', 'EA', 'Stakeholder priority: always put through / schedule quickly / route or screen.'],
   ['Transit visa', 'Travel', 'A visa some countries require just to change planes there.'],
   ['Traveller profile', 'Travel', 'A secure record of everything needed to book travel for a person.'],
+  ['Reconciliation', 'EA', 'Matching every line of a statement to proof and a business purpose, so the totals agree and errors are caught in time.'],
+  ['Renewals register', 'EA', 'A tracker of everything that expires, with the date to start renewing each item.'],
+  ['Statement date', 'EA', 'The day the bank closes a card’s monthly statement. Payment is due some weeks later.'],
+  ['Card dispute', 'EA', 'Asking the bank to reverse a charge that is wrong, duplicated or not recognised. Banks set time limits for disputes.'],
+  ['Forex markup', 'Travel', 'The bank’s fee on a card payment in foreign currency, shown as a separate line with GST on it.'],
   ['Web check-in', 'Travel', 'Online check-in that opens 24–48 hours before departure and issues a mobile boarding pass.']
 ];
